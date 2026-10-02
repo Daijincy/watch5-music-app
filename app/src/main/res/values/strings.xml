@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">音乐播放器</string>
+    <string name="offline_title">手机未连接</string>
+    <string name="offline_sub">已暂停媒体信息同步</string>
+    <string name="volume_title">音量</string>
+    <string name="lyric_hint_prefix">下句 %1$d / %2$d</string>
+    <string name="lyric_hint_end">—— 已到本曲最后一句 ——</string>
+</resources>
