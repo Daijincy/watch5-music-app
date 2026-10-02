@@ -6,7 +6,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.awaitPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import kotlin.math.PI
@@ -24,11 +23,13 @@ fun Modifier.arcSeekGesture(
     onSeek: (Float) -> Unit
 ): Modifier = pointerInput(enabled) {
     val bandPx = 46.dp.toPx()
+    // PointerInputScope.size 是 IntSize，转成几何 Size 供进度计算使用
+    val sz = Size(size.width.toFloat(), size.height.toFloat())
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
-        val inBand = enabled && down.position.isInArcBand(size, bandPx)
+        val inBand = enabled && down.position.isInArcBand(sz, bandPx)
         if (inBand) {
-            onSeek(down.position.arcProgress(size))
+            onSeek(down.position.arcProgress(sz))
             var last = down.position
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Main)
@@ -37,7 +38,7 @@ fun Modifier.arcSeekGesture(
                 if (change.position != last) {
                     last = change.position
                     change.consume()
-                    onSeek(change.position.arcProgress(size))
+                    onSeek(change.position.arcProgress(sz))
                 }
             }
         }

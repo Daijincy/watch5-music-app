@@ -79,7 +79,7 @@ fun VerticalVolumeSlider(volume: Int, onVolumeChange: (Int) -> Unit, modifier: M
                 onVolumeChange(v)
             }
             detectDragGestures(
-                onDragStart = { apply(it.position.y) },
+                onDragStart = { apply(it.y) },
                 onDrag = { change, _ ->
                     apply(change.position.y)
                     change.consume()

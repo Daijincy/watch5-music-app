@@ -15,9 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RenderEffect
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.xiaomi.watch5music.ui.model.SampleSongs
@@ -36,17 +35,11 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
 
-        // ===== 主内容层：音量菜单展开时整体高模糊（RenderEffect blur 30px） =====
+        // ===== 主内容层：音量菜单展开时整体高模糊（Modifier.blur 30dp，API31+ 生效） =====
         Box(
             Modifier
                 .fillMaxSize()
-                .graphicsLayer {
-                    if (volumeOpen && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        renderEffect = RenderEffect.createBlurEffect(30f, 30f, TileMode.Clamp)
-                    } else {
-                        renderEffect = null
-                    }
-                }
+                .then(if (volumeOpen && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(30.dp) else Modifier)
         ) {
             MediaHead(song.title, song.artist, Modifier.align(Alignment.TopCenter))
 
