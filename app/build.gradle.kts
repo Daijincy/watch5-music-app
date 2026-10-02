@@ -15,8 +15,12 @@ android {
         // Wear OS 5 对应 API 35；minSdk 26 兼容旧款 Wear OS 手表
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
+        // armv7 (armeabi-v7a) + armv8 (arm64-v8a) 双支持，覆盖主流手机/手表 CPU 架构
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+        }
     }
 
     buildTypes {
