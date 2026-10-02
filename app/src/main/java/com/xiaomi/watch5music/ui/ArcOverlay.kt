@@ -2,7 +2,7 @@ package com.xiaomi.watch5music.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.matchParentSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -26,7 +26,7 @@ import kotlin.math.sin
 @Composable
 fun ArcOverlay(progress: Float, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier) {
-        Canvas(Modifier.matchParentSize()) {
+        Canvas(Modifier.fillMaxSize()) {
             val cx = size.width / 2f
             val cy = size.height / 2f
             val r = min(size.width, size.height) * 0.40f

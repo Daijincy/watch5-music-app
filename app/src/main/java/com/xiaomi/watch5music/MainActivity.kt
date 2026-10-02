@@ -22,7 +22,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xiaomi.watch5music.ui.MusicPlayerScreen
 import com.xiaomi.watch5music.ui.PlayerViewModel
 import com.xiaomi.watch5music.ui.theme.Watch5MusicTheme
-import kotlin.math.min
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +60,8 @@ private fun WatchSimulator() {
         modifier = Modifier.fillMaxSize().background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        val faceDp = minOf(min(maxWidth, maxHeight), 480.dp)
+        val shortSide = if (maxWidth < maxHeight) maxWidth else maxHeight
+        val faceDp = if (shortSide > 480.dp) 480.dp else shortSide
         Box(
             modifier = Modifier
                 .size(faceDp)

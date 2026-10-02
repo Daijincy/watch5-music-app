@@ -1,7 +1,5 @@
 package com.xiaomi.watch5music.ui
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.xiaomi.watch5music.ui.model.SampleSongs
@@ -42,7 +42,7 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
                 .fillMaxSize()
                 .graphicsLayer {
                     if (volumeOpen && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        renderEffect = RenderEffect.createBlurEffect(30f, 30f, Shader.TileMode.CLAMP)
+                        renderEffect = RenderEffect.createBlurEffect(30f, 30f, TileMode.Clamp)
                     } else {
                         renderEffect = null
                     }
