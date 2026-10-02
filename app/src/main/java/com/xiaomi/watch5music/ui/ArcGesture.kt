@@ -7,10 +7,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.atan2
-import kotlin.math.min
 
 /**
  * 半圆弧进度拖拽手势。
@@ -22,13 +20,14 @@ fun Modifier.arcSeekGesture(
     enabled: Boolean,
     onSeek: (Float) -> Unit
 ): Modifier = pointerInput(enabled) {
-    val bandPx = 46.dp.toPx()
     // PointerInputScope.size 是 IntSize，转成几何 Size 供进度计算使用
     val sz = Size(size.width.toFloat(), size.height.toFloat())
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
-        val inBand = enabled && down.position.isInArcBand(sz, bandPx)
-        if (inBand) {
+        // 无级调节：按下位置在下半屏（进度弧所在区域）即开始调节，
+        // 拖动中每个事件都平滑映射进度并持续跟随手指，不做档位/跳变。
+        val startSeek = enabled && down.position.y >= sz.height / 2f
+        if (startSeek) {
             onSeek(down.position.arcProgress(sz))
             var last = down.position
             while (true) {
@@ -43,16 +42,6 @@ fun Modifier.arcSeekGesture(
             }
         }
     }
-}
-
-/** 是否落在下方半圆弧进度带内（距圆心 40% 屏宽 ± bandPx，且在下半屏） */
-private fun Offset.isInArcBand(size: Size, bandPx: Float): Boolean {
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    if (y < cy) return false
-    val r = min(size.width, size.height) * 0.40f
-    val dist = (this - Offset(cx, cy)).getDistance()
-    return dist in (r - bandPx)..(r + bandPx)
 }
 
 /** 屏幕坐标 → 半圆进度 0..1（0=右侧，经底部到左侧=1） */

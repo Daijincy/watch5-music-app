@@ -19,19 +19,20 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.xiaomi.watch5music.ui.model.SampleSongs
 import kotlin.math.abs
 
 /**
  * 主界面：纯黑极简背景，三张横向滑动卡片（封面 / 歌词 / 控制）。
- * 全局卡片切换带快速淡入淡出（按滑动偏移驱动 alpha）。
+ * 所有数据来自蓝牙（[PlayerViewModel] 无任何预设），无蓝牙数据时显示「不可用」遮罩。
  */
 @Composable
 fun MusicPlayerScreen(vm: PlayerViewModel) {
     val state by vm.state.collectAsState()
     var volumeOpen by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState(pageCount = { 3 })
-    val song = SampleSongs.all[state.songIndex]
+
+    // 无蓝牙数据：未连接或无歌名
+    val noData = !state.connected || state.title.isNullOrBlank()
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
 
@@ -41,12 +42,12 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
                 .fillMaxSize()
                 .then(if (volumeOpen && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(30.dp) else Modifier)
         ) {
-            MediaHead(song.title, song.artist, Modifier.align(Alignment.TopCenter))
+            MediaHead(state.title ?: "未连接", state.artist ?: "—", Modifier.align(Alignment.TopCenter))
 
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
-                    // 手势优先判断：起点在半圆进度带内则 seek，否则交给 pager 滑动
+                    // 手势优先判断：起点在下半屏则做无级进度调节，否则交给 pager 滑动
                     .arcSeekGesture(enabled = state.connected && !volumeOpen, onSeek = vm::seekTo)
                     .fillMaxSize()
                     .padding(top = 74.dp, bottom = 92.dp)
@@ -59,8 +60,8 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
                         .graphicsLayer { alpha = (1f - 0.55f * abs(offset)).coerceIn(0f, 1f) }
                 ) {
                     when (page) {
-                        0 -> CoverCard(song, state.playing, vm::togglePlay)
-                        1 -> LyricCard(song, state.progress)
+                        0 -> CoverCard(state.title, state.artist, state.playing, vm::togglePlay)
+                        1 -> LyricCard(state.currentLyric)
                         else -> ControlCard(
                             playing = state.playing,
                             volume = state.volume,
@@ -79,10 +80,10 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
         }
 
         // 当前秒数（拖拽圆弧时可见，极简小字）
-        TimePill(state.progress, song.durationSec, Modifier.align(Alignment.BottomCenter).padding(bottom = 62.dp))
+        TimePill(state.progress, state.durationSec, Modifier.align(Alignment.BottomCenter).padding(bottom = 62.dp))
 
-        // 蓝牙断连遮罩
-        if (!state.connected) OfflineOverlay(Modifier.fillMaxSize())
+        // 无蓝牙数据 → 不可用遮罩
+        if (noData) UnavailableOverlay(Modifier.fillMaxSize())
 
         // 音量二级菜单（高模糊背景弹层）
         if (volumeOpen) {

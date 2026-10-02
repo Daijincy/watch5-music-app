@@ -1,113 +1,60 @@
 package com.xiaomi.watch5music.ui
 
-import android.os.Build
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.xiaomi.watch5music.ui.model.Song
-import com.xiaomi.watch5music.ui.model.currentLineIndex
 import com.xiaomi.watch5music.ui.theme.InkDim
-import kotlinx.coroutines.delay
 
 /**
  * 卡片 2 · 歌词页。
- * 蓝牙逐句推送：只显示当前句（大字号居中），上下句弱显示；
- * 句切换时带 模糊 + 上下跳动 动画（AnimatedContent + RenderEffect 模糊）。
+ * 只显示蓝牙逐句推送的【当前】一句（大字号居中）：
+ * 手机端在换句时推送当前句文本，手表端原样展示这一句，不做上下句联想。
  */
 @Composable
-fun LyricCard(song: Song, progress: Float, modifier: Modifier = Modifier) {
-    val ci = currentLineIndex(song, progress)
-    val prev = song.lyrics.getOrNull(ci - 1)?.text ?: ""
-    val cur = song.lyrics[ci].text
-    val next = song.lyrics.getOrNull(ci + 1)?.text ?: ""
-
-    // 句切换时短暂触发模糊
-    var showBlur by remember { mutableStateOf(false) }
-    LaunchedEffect(cur) {
-        showBlur = true
-        delay(340)
-        showBlur = false
-    }
-    val blur by animateFloatAsState(
-        targetValue = if (showBlur) 20f else 0f,
-        animationSpec = tween(320),
-        label = "lyricBlur"
-    )
-
+fun LyricCard(lyric: String?, modifier: Modifier = Modifier) {
     Column(
         modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = prev,
-            fontSize = 15.sp,
-            color = InkDim,
-            maxLines = 2,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.graphicsLayer { alpha = 0.55f }
-        )
-        Spacer(Modifier.height(8.dp))
-
-        AnimatedContent(
-            targetState = cur,
-            transitionSpec = {
-                (slideInVertically(initialOffsetY = { it / 3 }) + fadeIn(tween(320))) togetherWith
-                    (slideOutVertically(targetOffsetY = { -it / 3 }) + fadeOut(tween(200)))
-            },
-            label = "lyric"
-        ) { line ->
+        val line = lyric?.takeIf { it.isNotBlank() }
+        if (line == null) {
             Text(
-                text = line,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Black,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.blur(blur.dp)
+                text = "等待歌词推送…",
+                fontSize = 15.sp,
+                color = InkDim,
+                textAlign = TextAlign.Center
             )
+        } else {
+            AnimatedContent(
+                targetState = line,
+                transitionSpec = { (fadeIn(tween(280)) + androidx.compose.animation.slideInVertically(initialOffsetY = { it / 4 })) togetherWith fadeOut(tween(160)) },
+                label = "lyric"
+            ) { current ->
+                Text(
+                    text = current,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 28.dp)
+                )
+            }
         }
-
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = next,
-            fontSize = 15.sp,
-            color = InkDim,
-            maxLines = 2,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.graphicsLayer { alpha = 0.55f }
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = if (next.isNotEmpty()) "下句 ${ci + 2} / ${song.lyrics.size}" else "—— 已到本曲最后一句 ——",
-            fontSize = 10.sp,
-            color = InkDim
-        )
     }
 }

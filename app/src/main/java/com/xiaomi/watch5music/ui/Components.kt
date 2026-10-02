@@ -78,14 +78,14 @@ fun TimePill(progress: Float, durationSec: Int, modifier: Modifier = Modifier) {
     }
 }
 
-// ===== 蓝牙断连遮罩 =====
+// ===== 无蓝牙数据遮罩 =====
 @Composable
-fun OfflineOverlay(modifier: Modifier = Modifier) {
+fun UnavailableOverlay(modifier: Modifier = Modifier) {
     Box(modifier.background(Color.Black.copy(alpha = 0.72f)), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("手机未连接", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("不可用", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(Modifier.height(6.dp))
-            Text("已暂停媒体信息同步", fontSize = 13.sp, color = InkDim)
+            Text("未收到蓝牙媒体数据\n请连接手机播放", fontSize = 13.sp, color = InkDim, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }
