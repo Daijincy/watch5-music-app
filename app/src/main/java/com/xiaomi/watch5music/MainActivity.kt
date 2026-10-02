@@ -61,7 +61,7 @@ private fun WatchSimulator() {
         modifier = Modifier.fillMaxSize().background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        val faceDp = min(maxWidth, maxHeight).coerceAtMost(480.dp)
+        val faceDp = minOf(min(maxWidth, maxHeight), 480.dp)
         Box(
             modifier = Modifier
                 .size(faceDp)
