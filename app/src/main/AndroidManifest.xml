@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 手表硬件声明 -->
+    <!-- 手表硬件声明：required=false 以便普通安卓设备也能安装，用于 480×480 圆形表盘模拟测试 -->
     <uses-feature
         android:name="android.hardware.type.watch"
-        android:required="true" />
+        android:required="false" />
 
     <!-- 蓝牙（Android 12+ 需 BLUETOOTH_CONNECT 运行时权限） -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
