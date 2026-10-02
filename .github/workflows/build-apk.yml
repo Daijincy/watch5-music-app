@@ -20,6 +20,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35'
+          accept-android-sdk-licenses: true
 
       # 工程不内置 gradle wrapper jar，直接用官方发行版构建
       - name: Download Gradle 8.7
