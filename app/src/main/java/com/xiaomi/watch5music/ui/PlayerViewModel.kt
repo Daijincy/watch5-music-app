@@ -1,7 +1,9 @@
 package com.xiaomi.watch5music.ui
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.xiaomi.watch5music.media.MediaBridge
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,15 +11,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * 播放状态管理（蓝牙数据驱动，无任何预设/模拟数据）。
+ * 播放状态管理（系统媒体桥驱动，无任何预设/模拟数据）。
  *
- * 所有媒体信息（歌名 / 歌手 / 时长 / 进度 / 逐句歌词 / 播放状态）由手机端
- * MediaSession 经蓝牙 BLE 推送调用下面的 onXxx 入口写入；本类不生成数据。
- * 未收到任何蓝牙数据时 [UiState.connected]=false，界面显示「不可用」。
+ * 初始化即启动 [MediaBridge]：手表蓝牙连手机后，经系统 MediaController 读取
+ * 手机正在播放的 歌名/歌手/时长/进度/播放状态，写入 onXxx 入口。
+ * 未读到任何媒体数据时 [UiState.connected]=false，界面显示「不可用」。
  *
  * 控制指令（播放/暂停/切歌/seek/音量）由界面调用，经 [sendCommand] 下发给手机。
  */
-class PlayerViewModel : ViewModel() {
+class PlayerViewModel(application: Application) : AndroidViewModel(application) {
+
+    init {
+        MediaBridge(application, this).start()
+    }
 
     data class UiState(
         val title: String? = null,          // 蓝牙推送的歌名，无数据时为 null
