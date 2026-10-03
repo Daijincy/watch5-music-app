@@ -38,13 +38,6 @@ class MediaBridge(private val context: Context, private val vm: PlayerViewModel)
     private val handler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    // 会话列表变化（新设备/新播放会话出现或消失）时重新绑定
-    private val sessionCb = object : MediaSessionManager.OnActiveSessionsChangedListener {
-        override fun onActiveSessionsChanged(controllers: List<MediaController>) {
-            bind(controllers)
-        }
-    }
-
     // 绑定会话的元信息 / 播放状态回调
     private val cb = object : MediaController.Callback() {
         override fun onSessionDestroyed() {
@@ -82,15 +75,15 @@ class MediaBridge(private val context: Context, private val vm: PlayerViewModel)
         }
     }
 
-    @Suppress("DEPRECATION") // Handler 版本在 API 31+ 弃用但仍可用，兼容 minSdk 26
     fun start() {
-        msm.registerOnActiveSessionsChangedListener(sessionCb, handler)
-        bind(msm.getActiveSessions(null) ?: emptyList())
-        // 播放中由本桥持续推进进度（无需手机每秒推送）
+        // 每秒轮询活跃媒体会话并绑定；同时持续推进播放进度。
+        // getActiveSessions 需要 MEDIA_CONTENT_CONTROL 权限，缺失时可能抛 SecurityException，用 runCatching 兜底。
         scope.launch {
             while (isActive) {
+                val list = runCatching { msm.getActiveSessions(null) }.getOrNull() ?: emptyList()
+                bind(list)
                 vm.onProgress(currentProgress())
-                delay(500)
+                delay(1000)
             }
         }
     }
