@@ -17,9 +17,11 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
 /**
- * 主界面：纯黑极简背景，两张横向滑动卡片（封面 / 控制）。
- * 底部为水平无级进度条（从左到右，灰白底 / 深灰已播，无圆钮），拖动真实 seek。
- * 所有数据来自蓝牙（[PlayerViewModel] 无任何预设），无蓝牙数据时显示「不可用」遮罩。
+ * 主界面（Apple Watch Music 风格）：
+ * 纯黑极简背景，两张横向滑动卡片（全屏封面 / 控制页），
+ * 底部毛玻璃控制条（时间 + 水平无级进度条 + 三键）两页共用。
+ * 数据来自【本机信源 + 蓝牙 NLS】双通道（[PlayerViewModel] 无任何预设），
+ * 无数据时显示「不可用」遮罩。
  */
 @Composable
 fun MusicPlayerScreen(vm: PlayerViewModel) {
@@ -30,22 +32,23 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
     val noData = !state.connected || state.title.isNullOrBlank()
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        MediaHead(state.title ?: "未连接", state.artist ?: "—", Modifier.align(Alignment.TopCenter))
 
+        // ===== 页面区（底部预留控制条高度） =====
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize().padding(top = 74.dp, bottom = 76.dp)
+            modifier = Modifier.fillMaxSize().padding(bottom = 156.dp)
         ) { page ->
-            // 卡片切换：随滑动偏移快速淡入淡出
             val offset = (page - pagerState.currentPage) + pagerState.currentPageOffsetFraction
             Box(
                 Modifier
                     .fillMaxSize()
-                    .graphicsLayer { alpha = (1f - 0.55f * abs(offset)).coerceIn(0f, 1f) }
+                    .graphicsLayer { alpha = (1f - 0.45f * abs(offset)).coerceIn(0f, 1f) }
             ) {
                 when (page) {
                     0 -> CoverCard(state.title, state.artist, state.art, state.playing, vm::togglePlay)
                     else -> ControlCard(
+                        title = state.title ?: "—",
+                        artist = state.artist ?: "",
                         playing = state.playing,
                         onPlayPause = vm::togglePlay,
                         onPrev = vm::prev,
@@ -55,17 +58,20 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
             }
         }
 
-        // 底部水平无级进度条
-        SeekBar(
+        // ===== 底部毛玻璃控制条（Apple Watch Music 风格） =====
+        PlaybackBar(
+            playing = state.playing,
             progress = state.progress,
+            durationSec = state.durationSec,
             enabled = !noData,
+            onToggle = vm::togglePlay,
+            onPrev = vm::prev,
+            onNext = vm::next,
             onSeek = vm::seekTo,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 52.dp, end = 52.dp, bottom = 38.dp)
+                .padding(start = 26.dp, end = 26.dp, bottom = 22.dp)
         )
-
-        Dots(pagerState.currentPage, Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp))
 
         // 无蓝牙数据 → 不可用遮罩
         if (noData) UnavailableOverlay(Modifier.fillMaxSize())

@@ -1,8 +1,12 @@
 package com.xiaomi.watch5music.ui
 
+import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,10 +20,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -27,6 +35,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xiaomi.watch5music.ui.theme.AccentBlue
 import com.xiaomi.watch5music.ui.theme.InkDim
+
+// ===== 模糊工具：API31+ 真模糊，低版本降级为无模糊（安全） =====
+@Composable
+fun blurIfSupported(dp: Dp): Modifier =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(dp) else Modifier
+
+// ===== 时间格式化（m:ss） =====
+fun formatTime(sec: Int): String {
+    val s = sec.coerceAtLeast(0)
+    return String.format("%d:%02d", s / 60, s % 60)
+}
 
 // ===== 顶部媒体信息（三卡共用） =====
 @Composable
@@ -50,7 +69,7 @@ fun MediaHead(title: String, artist: String, modifier: Modifier = Modifier) {
 @Composable
 fun Dots(current: Int, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
-        repeat(3) { i ->
+        repeat(2) { i ->
             val w = if (i == current) 18.dp else 6.dp
             Box(
                 Modifier
@@ -90,17 +109,21 @@ fun UnavailableOverlay(modifier: Modifier = Modifier) {
     }
 }
 
-// ===== 毛玻璃按钮 =====
+// ===== 毛玻璃按钮（按压缩放反馈，Apple 风格） =====
 @Composable
 fun GlassButton(label: String, size: Dp, circle: Boolean = false, onClick: () -> Unit) {
     val shape = if (circle) CircleShape else RoundedCornerShape(16.dp)
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.88f else 1f)
     Box(
         Modifier
             .size(size)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(shape)
             .background(Color.White.copy(alpha = 0.10f))
             .border(1.dp, Color.White.copy(alpha = 0.20f), shape)
-            .clickable(onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(label, fontSize = if (circle) 28.sp else 22.sp, color = Color.White)

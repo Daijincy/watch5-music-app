@@ -37,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xiaomi.watch5music.media.MediaBridge
 import com.xiaomi.watch5music.media.MediaNotifService
 import com.xiaomi.watch5music.ui.GlassPill
 import com.xiaomi.watch5music.ui.MusicPlayerScreen
@@ -48,6 +49,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // 启动本机信源：轮询手表本机正在播放的媒体会话（与蓝牙 NLS 通道互补）
+        MediaBridge.start(applicationContext)
         setContent {
             Watch5MusicTheme {
                 val isRound = LocalConfiguration.current.isScreenRound

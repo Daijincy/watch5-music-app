@@ -3,6 +3,7 @@ package com.xiaomi.watch5music.media
 import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSession
@@ -77,9 +78,44 @@ class MediaNotifService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val n = sbn?.notification ?: return
         val extras = n.extras ?: return
-        // 媒体通知携带 MediaSession Token；只有它才包含可读的播放信息
-        val token = sessionToken(extras) ?: return
-        bind(token)
+        val token = sessionToken(extras)
+        if (token != null) {
+            bind(token)
+            return
+        }
+        // token 丢失（蓝牙同步后常见）：直接从通知内容读歌名/歌手/封面兜底
+        readFromExtras(extras)
+    }
+
+    /** 无 MediaSession token 时，尽力从通知 extras 解析基础媒体信息（歌名/歌手/封面）。 */
+    private fun readFromExtras(extras: android.os.Bundle) {
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            ?: extras.getCharSequence("android.media.metadata.TITLE")?.toString()
+        if (title.isNullOrBlank()) return
+
+        val artist = extras.getCharSequence("android.media.metadata.ARTIST")?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_ARTIST)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+
+        var art: Bitmap? = null
+        runCatching { art = extras.getParcelable(Notification.EXTRA_MEDIA_ART) }
+        if (art == null) {
+            runCatching {
+                @Suppress("DEPRECATION")
+                art = extras.getParcelable("android.media.metadata.ART")
+            }
+        }
+        if (art == null) {
+            runCatching {
+                @Suppress("DEPRECATION")
+                art = extras.getParcelable("android.media.metadata.ALBUM_ART")
+            }
+        }
+
+        // 通知存在即视为连接中/播放中（无 token 无法拿到精确进度）
+        MediaSync.onMeta(title, artist ?: "", 0, art)
+        MediaSync.onPlaying(true)
+        MediaSync.onConnectionChanged(true)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
