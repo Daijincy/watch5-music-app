@@ -31,6 +31,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 通知监听服务：读取手机同步到手表的媒体通知（需用户在设置→通知访问中授权） -->
+        <service
+            android:name=".media.MediaNotifService"
+            android:exported="true"
+            android:label="手机媒体同步"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
