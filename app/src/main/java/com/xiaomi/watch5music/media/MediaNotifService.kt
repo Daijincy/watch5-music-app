@@ -45,7 +45,26 @@ class MediaNotifService : NotificationListenerService() {
     private var basePosMs = 0L
     private var baseElapsed = 0L
     private var speed = 0f
+    private var playing = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun onCreate() {
+        super.onCreate()
+        // 界面下发的控制命令（播放/暂停/切歌/seek）→ MediaController.transportControls
+        scope.launch {
+            MediaSync.cmds.collect { c ->
+                val t = controller?.transportControls ?: return@collect
+                runCatching {
+                    when (c) {
+                        MediaSync.Cmd.Toggle -> if (playing) t.pause() else t.play()
+                        MediaSync.Cmd.Next -> t.skipToNext()
+                        MediaSync.Cmd.Prev -> t.skipToPrevious()
+                        is MediaSync.Cmd.Seek -> t.seekTo(c.ms)
+                    }
+                }
+            }
+        }
+    }
 
     private val cb = object : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) = push()
@@ -105,7 +124,8 @@ class MediaNotifService : NotificationListenerService() {
             basePosMs = st.position
             baseElapsed = SystemClock.elapsedRealtime()
             speed = st.playbackSpeed
-            MediaSync.onPlaying(st.state == PlaybackState.STATE_PLAYING)
+            playing = st.state == PlaybackState.STATE_PLAYING
+            MediaSync.onPlaying(playing)
         }
     }
 

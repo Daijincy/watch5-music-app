@@ -1,8 +1,11 @@
 package com.xiaomi.watch5music.media
 
 import android.graphics.Bitmap
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
@@ -44,5 +47,20 @@ object MediaSync {
     /** 通知/会话消失或断开 → 回到无数据（不可用）态 */
     fun onConnectionChanged(connected: Boolean) {
         _state.value = if (connected) _state.value.copy(connected = true) else Media()
+    }
+
+    // ===== 控制命令：界面 → [MediaNotifService] 经 MediaController 下发到手机媒体会话 =====
+    sealed class Cmd {
+        object Toggle : Cmd()
+        object Next : Cmd()
+        object Prev : Cmd()
+        data class Seek(val ms: Long) : Cmd()
+    }
+
+    private val _cmds = MutableSharedFlow<Cmd>(extraBufferCapacity = 8)
+    val cmds: SharedFlow<Cmd> = _cmds.asSharedFlow()
+
+    fun send(cmd: Cmd) {
+        _cmds.tryEmit(cmd)
     }
 }

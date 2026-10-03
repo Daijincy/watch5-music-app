@@ -55,26 +55,22 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // ===== 用户操作 → 下发命令 =====
+    // ===== 用户操作 → 下发到手机媒体会话（经 MediaSync 命令流） =====
 
-    fun togglePlay() = sendCommand("toggle")
+    fun togglePlay() = MediaSync.send(MediaSync.Cmd.Toggle)
 
-    fun next() = sendCommand("next")
+    fun next() = MediaSync.send(MediaSync.Cmd.Next)
 
-    fun prev() = sendCommand("prev")
+    fun prev() = MediaSync.send(MediaSync.Cmd.Prev)
 
     fun seekTo(p: Float) {
-        _state.update { it.copy(progress = p.coerceIn(0f, 1f)) }
-        sendCommand("seek:${p.coerceIn(0f, 1f)}")
+        val cl = p.coerceIn(0f, 1f)
+        _state.update { it.copy(progress = cl) }
+        val ms = (cl * _state.value.durationSec * 1000).toLong()
+        MediaSync.send(MediaSync.Cmd.Seek(ms))
     }
 
     fun setVolume(v: Int) {
         _state.update { it.copy(volume = v.coerceIn(0, 100)) }
-        sendCommand("volume:${v.coerceIn(0, 100)}")
-    }
-
-    /** 命令下发占位：待通过 MediaController transportControls 下发到手机播放会话。 */
-    private fun sendCommand(cmd: String) {
-        viewModelScope.launch { /* TODO: MediaController transportControls */ }
     }
 }
