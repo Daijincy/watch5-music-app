@@ -93,23 +93,16 @@ class MediaNotifService : NotificationListenerService() {
             ?: extras.getCharSequence("android.media.metadata.TITLE")?.toString()
         if (title.isNullOrBlank()) return
 
+        // 歌手：媒体通知把 artist 存在 android.media.metadata.* 键下（无公开 EXTRA_ARTIST 常量）
         val artist = extras.getCharSequence("android.media.metadata.ARTIST")?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_ARTIST)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
 
         var art: Bitmap? = null
-        runCatching { art = extras.getParcelable(Notification.EXTRA_MEDIA_ART) }
+        @Suppress("DEPRECATION")
+        runCatching { art = extras.getParcelable(MediaMetadata.METADATA_KEY_ART) }
         if (art == null) {
-            runCatching {
-                @Suppress("DEPRECATION")
-                art = extras.getParcelable("android.media.metadata.ART")
-            }
-        }
-        if (art == null) {
-            runCatching {
-                @Suppress("DEPRECATION")
-                art = extras.getParcelable("android.media.metadata.ALBUM_ART")
-            }
+            @Suppress("DEPRECATION")
+            runCatching { art = extras.getParcelable(MediaMetadata.METADATA_KEY_ALBUM_ART) }
         }
 
         // 通知存在即视为连接中/播放中（无 token 无法拿到精确进度）
