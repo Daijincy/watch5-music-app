@@ -1,7 +1,6 @@
 package com.xiaomi.watch5music.media
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.media.MediaMetadata
@@ -10,6 +9,7 @@ import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Build
 import android.os.SystemClock
+import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.CoroutineScope
@@ -34,9 +34,9 @@ class MediaNotifService : NotificationListenerService() {
     companion object {
         /** 检查当前 App 是否已获得「通知访问」授权（Android 无运行时 API 直接申请，只能跳系统设置）。 */
         fun isGranted(context: Context): Boolean {
-            val nm = context.getSystemService(NotificationManager::class.java) ?: return false
-            val cn = ComponentName(context, MediaNotifService::class.java)
-            return nm.getEnabledNotificationListenerComponents()?.contains(cn) == true
+            val cn = ComponentName(context, MediaNotifService::class.java).flattenToString()
+            val enabled = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners") ?: return false
+            return enabled.split(":").contains(cn)
         }
     }
 

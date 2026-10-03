@@ -106,9 +106,12 @@ private fun PermissionGate(content: @Composable () -> Unit) {
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(24.dp))
-                GlassPill("去开启权限") {
-                    context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                }
+                GlassPill(
+                    label = "去开启权限",
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                    }
+                )
             }
         }
     } else {
