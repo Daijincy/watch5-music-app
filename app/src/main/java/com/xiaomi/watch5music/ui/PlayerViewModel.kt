@@ -1,6 +1,7 @@
 package com.xiaomi.watch5music.ui
 
 import android.app.Application
+import android.graphics.Bitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.xiaomi.watch5music.media.MediaSync
@@ -29,6 +30,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         val playing: Boolean = false,       // 播放/暂停
         val connected: Boolean = false,     // 是否已收到媒体数据
         val volume: Int = 80,               // 音量 0..100
+        val art: Bitmap? = null,            // 专辑封面（同步自手机媒体元数据）
         val currentLyric: String? = null    // 逐句歌词（通知通道不携带，保持等待推送）
     )
 
@@ -45,7 +47,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                         durationSec = m.durationSec,
                         progress = m.progress,
                         playing = m.playing,
-                        connected = m.connected
+                        connected = m.connected,
+                        art = m.art
                     )
                 }
             }

@@ -90,10 +90,13 @@ class MediaNotifService : NotificationListenerService() {
         durationMs = meta?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
         val title = meta?.getString(MediaMetadata.METADATA_KEY_TITLE)
         if (!title.isNullOrBlank()) {
+            // 专辑封面：MediaSession 元数据里的 Bitmap（无则留空，界面走兜底）
+            val art = meta.getBitmap(MediaMetadata.METADATA_KEY_ART)
             MediaSync.onMeta(
                 title,
                 meta.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "",
-                (durationMs / 1000).toInt()
+                (durationMs / 1000).toInt(),
+                art
             )
             MediaSync.onConnectionChanged(true)
         }

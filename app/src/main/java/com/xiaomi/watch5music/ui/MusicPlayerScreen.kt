@@ -60,7 +60,7 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
                         .graphicsLayer { alpha = (1f - 0.55f * abs(offset)).coerceIn(0f, 1f) }
                 ) {
                     when (page) {
-                        0 -> CoverCard(state.title, state.artist, state.playing, vm::togglePlay)
+                        0 -> CoverCard(state.title, state.artist, state.art, state.playing, vm::togglePlay)
                         1 -> LyricCard(state.currentLyric)
                         else -> ControlCard(
                             playing = state.playing,

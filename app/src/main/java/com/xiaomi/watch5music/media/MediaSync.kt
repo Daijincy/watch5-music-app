@@ -1,5 +1,6 @@
 package com.xiaomi.watch5music.media
 
+import android.graphics.Bitmap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,15 +20,16 @@ object MediaSync {
         val durationSec: Int = 0,
         val progress: Float = 0f,
         val playing: Boolean = false,
-        val connected: Boolean = false
+        val connected: Boolean = false,
+        val art: Bitmap? = null
     )
 
     private val _state = MutableStateFlow(Media())
     val state: StateFlow<Media> = _state.asStateFlow()
 
-    fun onMeta(title: String, artist: String, durationSec: Int) {
+    fun onMeta(title: String, artist: String, durationSec: Int, art: Bitmap?) {
         _state.value = _state.value.copy(
-            title = title, artist = artist, durationSec = durationSec, connected = true
+            title = title, artist = artist, durationSec = durationSec, art = art, connected = true
         )
     }
 
