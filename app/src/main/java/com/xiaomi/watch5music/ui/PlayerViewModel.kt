@@ -21,6 +21,20 @@ import kotlinx.coroutines.launch
  */
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
+    data class UiState(
+        val title: String? = null,          // 手机播放的歌名，无数据时为 null
+        val artist: String? = null,         // 歌手
+        val durationSec: Int = 0,           // 总时长（秒）
+        val progress: Float = 0f,           // 播放进度 0..1
+        val playing: Boolean = false,       // 播放/暂停
+        val connected: Boolean = false,     // 是否已收到媒体数据
+        val volume: Int = 80,               // 音量 0..100
+        val currentLyric: String? = null    // 逐句歌词（通知通道不携带，保持等待推送）
+    )
+
+    private val _state = MutableStateFlow(UiState())
+    val state: StateFlow<UiState> = _state.asStateFlow()
+
     init {
         viewModelScope.launch {
             MediaSync.state.collect { m ->
@@ -37,20 +51,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
     }
-
-    data class UiState(
-        val title: String? = null,          // 手机播放的歌名，无数据时为 null
-        val artist: String? = null,         // 歌手
-        val durationSec: Int = 0,           // 总时长（秒）
-        val progress: Float = 0f,           // 播放进度 0..1
-        val playing: Boolean = false,       // 播放/暂停
-        val connected: Boolean = false,     // 是否已收到媒体数据
-        val volume: Int = 80,               // 音量 0..100
-        val currentLyric: String? = null    // 逐句歌词（通知通道不携带，保持等待推送）
-    )
-
-    private val _state = MutableStateFlow(UiState())
-    val state: StateFlow<UiState> = _state.asStateFlow()
 
     // ===== 用户操作 → 下发命令 =====
 
