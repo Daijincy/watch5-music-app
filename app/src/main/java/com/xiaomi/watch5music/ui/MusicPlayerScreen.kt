@@ -2,8 +2,10 @@ package com.xiaomi.watch5music.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
@@ -17,11 +19,11 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
 /**
- * 主界面（Apple Watch Music 风格）：
+ * 主界面（Apple Watch Music 风格，圆屏适配）：
  * 纯黑极简背景，两张横向滑动卡片（全屏封面 / 控制页），
- * 底部毛玻璃控制条（时间 + 水平无级进度条 + 三键）两页共用。
- * 数据来自【本机信源 + 蓝牙 NLS】双通道（[PlayerViewModel] 无任何预设），
- * 无数据时显示「不可用」遮罩。
+ * 底部毛玻璃控制条（时间 + 水平无级进度条 + 三键）两页共用；
+ * 控制条按屏宽收窄居中，圆形表盘四角留黑、矩形条不外溢。
+ * 数据来自【通知监听 NLS】统一通道（本机 + 蓝牙），无数据时显示「不可用」遮罩。
  */
 @Composable
 fun MusicPlayerScreen(vm: PlayerViewModel) {
@@ -31,7 +33,9 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
     // 无蓝牙数据：未连接或无歌名
     val noData = !state.connected || state.title.isNullOrBlank()
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
+        // 控制条宽度：宽屏（圆表 480dp / 大屏手机）收窄到 380dp 居中，窄屏留边
+        val barW = if (maxWidth > 420.dp) 380.dp else maxWidth - 44.dp
 
         // ===== 页面区（底部预留控制条高度） =====
         HorizontalPager(
@@ -58,7 +62,7 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
             }
         }
 
-        // ===== 底部毛玻璃控制条（Apple Watch Music 风格） =====
+        // ===== 底部毛玻璃控制条（圆屏收窄居中） =====
         PlaybackBar(
             playing = state.playing,
             progress = state.progress,
@@ -70,7 +74,8 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
             onSeek = vm::seekTo,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 26.dp, end = 26.dp, bottom = 22.dp)
+                .width(barW)
+                .padding(bottom = 22.dp)
         )
 
         // 无蓝牙数据 → 不可用遮罩
