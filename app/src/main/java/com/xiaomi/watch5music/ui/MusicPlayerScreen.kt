@@ -62,7 +62,7 @@ fun MusicPlayerScreen(vm: PlayerViewModel) {
             onSeek = vm::seekTo,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 52.dp, bottom = 38.dp)
+                .padding(start = 52.dp, end = 52.dp, bottom = 38.dp)
         )
 
         Dots(pagerState.currentPage, Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp))
