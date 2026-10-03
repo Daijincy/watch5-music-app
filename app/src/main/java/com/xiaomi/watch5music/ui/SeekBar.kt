@@ -46,7 +46,7 @@ fun SeekBar(
                 if (!enabled) return@pointerInput
                 detectHorizontalDragGestures(
                     onDragStart = { off -> drag = (off.x / size.width).coerceIn(0f, 1f) },
-                    onDrag = { change, _ ->
+                    onHorizontalDrag = { change, _ ->
                         change.consume()
                         drag = (change.position.x / size.width).coerceIn(0f, 1f)
                     },
