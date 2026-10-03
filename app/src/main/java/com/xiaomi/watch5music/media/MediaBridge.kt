@@ -40,7 +40,7 @@ class MediaBridge(private val context: Context, private val vm: PlayerViewModel)
 
     // 会话列表变化（新设备/新播放会话出现或消失）时重新绑定
     private val sessionCb = object : MediaSessionManager.OnActiveSessionsChangedListener {
-        override fun onActiveSessionsChanged(controllers: List<MediaController?>) {
+        override fun onActiveSessionsChanged(controllers: List<MediaController>) {
             bind(controllers)
         }
     }
@@ -82,9 +82,10 @@ class MediaBridge(private val context: Context, private val vm: PlayerViewModel)
         }
     }
 
+    @Suppress("DEPRECATION") // Handler 版本在 API 31+ 弃用但仍可用，兼容 minSdk 26
     fun start() {
-        msm.registerCallback(sessionCb, handler)
-        bind(msm.getActiveSessions(null))
+        msm.registerOnActiveSessionsChangedListener(sessionCb, handler)
+        bind(msm.getActiveSessions(null) ?: emptyList())
         // 播放中由本桥持续推进进度（无需手机每秒推送）
         scope.launch {
             while (isActive) {
@@ -94,15 +95,14 @@ class MediaBridge(private val context: Context, private val vm: PlayerViewModel)
         }
     }
 
-    private fun bind(controllers: List<MediaController?>) {
-        // 当前已绑定会话仍有效则不动
-        if (controller != null && controllers.contains(controller)) return
+    private fun bind(controllers: List<MediaController>) {
+        val current = controller
+        if (current != null && controllers.contains(current)) return
         controller?.unregisterCallback(cb)
         controller = null
-        val valid = controllers.filterNotNull()
-        val best = valid.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
-            ?: valid.firstOrNull { !it.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank() }
-            ?: valid.firstOrNull { it.playbackState != null }
+        val best = controllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: controllers.firstOrNull { !it.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank() }
+            ?: controllers.firstOrNull { it.playbackState != null }
         if (best != null) {
             controller = best
             best.registerCallback(cb, handler)
